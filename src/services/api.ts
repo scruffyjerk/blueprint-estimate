@@ -1,6 +1,6 @@
 import { AnalysisResult, AnalysisSettings } from '@/types';
 
-const API_BASE_URL = 'https://takeoff-api.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://takeoff-api-uyzv.onrender.com';
 
 export async function analyzeBlueprint(
   file: File,
