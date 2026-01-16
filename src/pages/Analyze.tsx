@@ -68,40 +68,13 @@ export default function Analyze() {
     setResult,
   } = useAnalysis();
 
-  const [useMock, setUseMock] = useState(false);
-
   const handleAnalyze = async () => {
-    if (useMock) {
-      // Simulate loading for demo
-      const mockWithSettings = {
-        ...MOCK_RESULT,
-        project_name: settings.project_name || 'My Construction Project',
-        quality_tier: settings.quality_tier,
-        region: settings.region,
-        include_labor: settings.include_labor,
-        contingency_percent: settings.contingency_percent,
-      };
-      
-      // Navigate to results with mock data
-      setTimeout(() => {
-        setResult(mockWithSettings);
-        navigate('/results', { state: { result: mockWithSettings, thumbnail: filePreview } });
-      }, 2000);
-      return;
-    }
 
     const result = await analyze();
     if (result) {
       navigate('/results', { state: { result, thumbnail: filePreview } });
     }
   };
-
-  // Auto-enable mock mode after first API failure for demo purposes
-  useEffect(() => {
-    if (state.status === 'error' && !useMock) {
-      setUseMock(true);
-    }
-  }, [state.status, useMock]);
 
   const isLoading = state.status === 'uploading' || state.status === 'analyzing';
 
