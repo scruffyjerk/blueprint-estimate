@@ -52,7 +52,7 @@ export interface AnalysisResult {
 }
 
 export type QualityTier = 'budget' | 'standard' | 'premium' | 'luxury';
-export type Region = 'national' | 'northeast' | 'southeast' | 'midwest' | 'southwest' | 'west';
+export type Region = 'us_national' | 'us_northeast' | 'us_southeast' | 'us_midwest' | 'us_southwest' | 'us_west';
 
 export interface AnalysisSettings {
   project_name: string;
