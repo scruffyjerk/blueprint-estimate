@@ -5,7 +5,7 @@ import { analyzeBlueprint, validateFile } from '@/services/api';
 const DEFAULT_SETTINGS: AnalysisSettings = {
   project_name: '',
   quality_tier: 'standard',
-  region: 'national',
+  region: 'us_national',
   include_labor: true,
   contingency_percent: 10,
 };
