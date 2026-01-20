@@ -1,4 +1,4 @@
-import { MaterialItem, CostBreakdown } from '@/types';
+import { MaterialItem, CostBreakdown, QualityTier } from '@/types';
 import {
   Table,
   TableBody,
@@ -12,13 +12,21 @@ interface CostTableProps {
   materials: MaterialItem[];
   costBreakdown: CostBreakdown;
   contingencyPercent: number;
+  selectedTier?: QualityTier;
 }
+
+const TIER_LABELS: Record<QualityTier, string> = {
+  budget: 'Budget',
+  standard: 'Standard',
+  premium: 'Premium',
+  luxury: 'Luxury',
+};
 
 function formatCurrency(amount: number) {
   return '$' + (amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export function CostTable({ materials, costBreakdown, contingencyPercent }: CostTableProps) {
+export function CostTable({ materials, costBreakdown, contingencyPercent, selectedTier = 'standard' }: CostTableProps) {
   // Group materials by category
   const grouped = materials.reduce((acc, item) => {
     const category = item.category || 'Other';
@@ -29,8 +37,11 @@ export function CostTable({ materials, costBreakdown, contingencyPercent }: Cost
 
   return (
     <div className="card-elevated overflow-hidden animate-slide-up" style={{ animationDelay: '0.2s' }}>
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border flex items-center justify-between">
         <h3 className="font-semibold text-foreground">Cost Estimate</h3>
+        <span className="text-sm px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">
+          {TIER_LABELS[selectedTier]} Tier
+        </span>
       </div>
 
       <div className="overflow-x-auto">

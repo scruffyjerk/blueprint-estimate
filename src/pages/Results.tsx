@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { StickySummary } from '@/components/results/StickySummary';
@@ -7,7 +7,7 @@ import { RoomBreakdown } from '@/components/results/RoomBreakdown';
 import { CostTable } from '@/components/results/CostTable';
 import { TierComparison } from '@/components/results/TierComparison';
 import { ResultActions } from '@/components/results/ResultActions';
-import { AnalysisResult, QualityTier } from '@/types';
+import { AnalysisResult, QualityTier, MaterialItem, CostBreakdown } from '@/types';
 
 export default function Results() {
   const location = useLocation();
@@ -27,17 +27,67 @@ export default function Results() {
     }
   }, [result, navigate]);
 
+  // Calculate the price multiplier based on selected tier vs standard tier
+  const tierMultiplier = useMemo(() => {
+    if (!result?.tier_comparisons) return 1;
+    
+    const standardTier = result.tier_comparisons.find(t => t.tier === 'standard');
+    const selectedTierData = result.tier_comparisons.find(t => t.tier === selectedTier);
+    
+    if (!standardTier || !selectedTierData || standardTier.grand_total === 0) return 1;
+    
+    return selectedTierData.grand_total / standardTier.grand_total;
+  }, [result?.tier_comparisons, selectedTier]);
+
+  // Adjust materials and cost breakdown based on selected tier
+  const adjustedMaterials = useMemo((): MaterialItem[] => {
+    if (!result?.materials) return [];
+    
+    return result.materials.map(item => ({
+      ...item,
+      unit_cost: item.unit_cost * tierMultiplier,
+      material_cost: item.material_cost * tierMultiplier,
+      labor_cost: item.labor_cost * tierMultiplier,
+      total_cost: item.total_cost * tierMultiplier,
+    }));
+  }, [result?.materials, tierMultiplier]);
+
+  const adjustedCostBreakdown = useMemo((): CostBreakdown => {
+    if (!result?.cost_breakdown) {
+      return {
+        materials_subtotal: 0,
+        labor_subtotal: 0,
+        subtotal: 0,
+        contingency_amount: 0,
+        grand_total: 0,
+      };
+    }
+    
+    // Get the selected tier's grand total directly from tier_comparisons
+    const selectedTierData = result.tier_comparisons?.find(t => t.tier === selectedTier);
+    const grandTotal = selectedTierData?.grand_total || result.cost_breakdown.grand_total * tierMultiplier;
+    
+    // Calculate other values based on the multiplier
+    const materialsSubtotal = result.cost_breakdown.materials_subtotal * tierMultiplier;
+    const laborSubtotal = result.cost_breakdown.labor_subtotal * tierMultiplier;
+    const subtotal = materialsSubtotal + laborSubtotal;
+    const contingencyAmount = subtotal * (result.contingency_percent / 100);
+    
+    return {
+      materials_subtotal: materialsSubtotal,
+      labor_subtotal: laborSubtotal,
+      subtotal: subtotal,
+      contingency_amount: contingencyAmount,
+      grand_total: grandTotal,
+    };
+  }, [result?.cost_breakdown, result?.tier_comparisons, result?.contingency_percent, selectedTier, tierMultiplier]);
+
   if (!result) {
     return null;
   }
 
-  // Get current tier data
-  const currentTierData = result.tier_comparisons?.find(t => t.tier === selectedTier);
-  const displayTotal = currentTierData?.grand_total || result.cost_breakdown?.grand_total || 0;
-
   const handleTierChange = (tier: QualityTier) => {
     setSelectedTier(tier);
-    // In a real app, this would recalculate with the API
   };
 
   const handleNewEstimate = () => {
@@ -52,7 +102,7 @@ export default function Results() {
   return (
     <Layout hideFooter>
       <StickySummary
-        grandTotal={displayTotal}
+        grandTotal={adjustedCostBreakdown.grand_total}
         roomCount={result.rooms?.length || 0}
         totalArea={result.total_area || 0}
       />
@@ -64,9 +114,10 @@ export default function Results() {
           <RoomBreakdown rooms={result.rooms || []} />
 
           <CostTable
-            materials={result.materials || []}
-            costBreakdown={result.cost_breakdown || {} as any}
+            materials={adjustedMaterials}
+            costBreakdown={adjustedCostBreakdown}
             contingencyPercent={result.contingency_percent || 10}
+            selectedTier={selectedTier}
           />
 
           <TierComparison
