@@ -28,11 +28,11 @@ export function BlueprintSummary({ result, thumbnail }: BlueprintSummaryProps) {
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Ruler className="w-4 h-4" />
-              <span>{result.total_area.toLocaleString()} {result.unit_system}</span>
+              <span>{(result.total_area || 0).toLocaleString()} {result.unit_system}</span>
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Layers className="w-4 h-4" />
-              <span>{result.rooms.length} rooms detected</span>
+              <span>{(result.rooms?.length || 0)} rooms detected</span>
             </div>
           </div>
         </div>

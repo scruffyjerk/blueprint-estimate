@@ -16,7 +16,7 @@ const TIER_INFO: Record<QualityTier, { label: string; description: string }> = {
 };
 
 function formatCurrency(amount: number) {
-  return '$' + amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return '$' + (amount || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
 export function TierComparison({ tiers, currentTier, onTierChange }: TierComparisonProps) {

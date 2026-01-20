@@ -15,7 +15,7 @@ interface CostTableProps {
 }
 
 function formatCurrency(amount: number) {
-  return '$' + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return '$' + (amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export function CostTable({ materials, costBreakdown, contingencyPercent }: CostTableProps) {

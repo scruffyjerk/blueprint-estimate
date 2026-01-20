@@ -51,13 +51,13 @@ export function RoomBreakdown({ rooms }: RoomBreakdownProps) {
               <TableRow key={index}>
                 <TableCell className="font-medium">{room.name}</TableCell>
                 <TableCell className="text-right font-mono text-sm">
-                  {room.dimensions.length}' × {room.dimensions.width}'
+                  {(room.dimensions?.length || 0)}' × {(room.dimensions?.width || 0)}'
                 </TableCell>
                 <TableCell className="text-right font-mono text-sm">
-                  {room.area.toLocaleString()} sq ft
+                  {(room.area || 0).toLocaleString()} sq ft
                 </TableCell>
                 <TableCell className="text-right">
-                  <ConfidenceBadge confidence={room.confidence} />
+                  <ConfidenceBadge confidence={room.confidence || 0} />
                 </TableCell>
               </TableRow>
             ))}
