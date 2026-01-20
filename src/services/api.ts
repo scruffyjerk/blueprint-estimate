@@ -3,28 +3,74 @@ import { AnalysisResult, AnalysisSettings, Room, MaterialItem, CostBreakdown, Ti
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://takeoff-api-uyzv.onrender.com';
 
 /**
+ * Parse dimension string like "11'" or "15'-6\"" to feet (number)
+ */
+function parseDimensionString(dimStr: string | number | null | undefined): number {
+  if (typeof dimStr === 'number') return dimStr;
+  if (!dimStr) return 0;
+  
+  const str = String(dimStr).trim();
+  
+  // Handle feet and inches format: 15'-6" or 15' 6" or 15'6"
+  const feetInchesMatch = str.match(/(\d+)'[\s-]*(\d+)?[""]?/);
+  if (feetInchesMatch) {
+    const feet = parseInt(feetInchesMatch[1]) || 0;
+    const inches = parseInt(feetInchesMatch[2]) || 0;
+    return feet + (inches / 12);
+  }
+  
+  // Handle just feet: 11'
+  const feetMatch = str.match(/(\d+(?:\.\d+)?)'?/);
+  if (feetMatch) {
+    return parseFloat(feetMatch[1]) || 0;
+  }
+  
+  // Handle meters: 4.5m or 4,5m
+  const metersMatch = str.match(/(\d+[,.]?\d*)\s*m/i);
+  if (metersMatch) {
+    const meters = parseFloat(metersMatch[1].replace(',', '.')) || 0;
+    return meters * 3.28084; // Convert to feet
+  }
+  
+  // Try to parse as plain number
+  return parseFloat(str.replace(',', '.')) || 0;
+}
+
+/**
  * Transform the backend API response to match the frontend's expected structure
  */
 function transformApiResponse(data: any): AnalysisResult {
   // The backend wraps the response in "blueprint_analysis"
   const analysis = data.blueprint_analysis || data;
   
-  // Transform rooms - backend returns strings for area, frontend expects numbers
-  const rooms: Room[] = (analysis.rooms || []).map((room: any) => ({
-    name: room.name || 'Unknown Room',
-    dimensions: {
-      length: parseFloat(room.length) || 0,
-      width: parseFloat(room.width) || 0,
-      height: room.height || 0,
-    },
-    area: parseAreaString(room.area),
-    confidence: parseConfidence(room.confidence),
-  }));
+  // Transform rooms - backend returns strings for dimensions and area
+  const rooms: Room[] = (analysis.rooms || []).map((room: any) => {
+    const length = parseDimensionString(room.length);
+    const width = parseDimensionString(room.width);
+    
+    // Parse area from string, or calculate from dimensions if not provided
+    let area = parseAreaString(room.area);
+    if (area === 0 && length > 0 && width > 0) {
+      area = length * width; // Calculate area from dimensions
+    }
+    
+    return {
+      name: room.name || 'Unknown Room',
+      dimensions: {
+        length: length,
+        width: width,
+        height: room.height || 0,
+      },
+      area: area,
+      confidence: parseConfidence(room.confidence),
+    };
+  });
 
   // Calculate total area from rooms if not provided
-  const totalArea = analysis.total_area 
-    ? parseAreaString(analysis.total_area)
-    : rooms.reduce((sum, room) => sum + (room.area || 0), 0);
+  let totalArea = parseAreaString(analysis.total_area);
+  if (totalArea === 0) {
+    totalArea = rooms.reduce((sum, room) => sum + (room.area || 0), 0);
+  }
 
   // Build the result with defaults for missing fields
   const result: AnalysisResult = {
