@@ -32,8 +32,8 @@ export default function Results() {
   }
 
   // Get current tier data
-  const currentTierData = result.tier_comparisons.find(t => t.tier === selectedTier);
-  const displayTotal = currentTierData?.grand_total || result.cost_breakdown.grand_total;
+  const currentTierData = result.tier_comparisons?.find(t => t.tier === selectedTier);
+  const displayTotal = currentTierData?.grand_total || result.cost_breakdown?.grand_total || 0;
 
   const handleTierChange = (tier: QualityTier) => {
     setSelectedTier(tier);
@@ -53,24 +53,24 @@ export default function Results() {
     <Layout hideFooter>
       <StickySummary
         grandTotal={displayTotal}
-        roomCount={result.rooms.length}
-        totalArea={result.total_area}
+        roomCount={result.rooms?.length || 0}
+        totalArea={result.total_area || 0}
       />
 
       <div className="container py-6 md:py-10">
         <div className="max-w-4xl mx-auto space-y-6">
           <BlueprintSummary result={result} thumbnail={thumbnail} />
-          
-          <RoomBreakdown rooms={result.rooms} />
-          
+
+          <RoomBreakdown rooms={result.rooms || []} />
+
           <CostTable
-            materials={result.materials}
-            costBreakdown={result.cost_breakdown}
-            contingencyPercent={result.contingency_percent}
+            materials={result.materials || []}
+            costBreakdown={result.cost_breakdown || {} as any}
+            contingencyPercent={result.contingency_percent || 10}
           />
 
           <TierComparison
-            tiers={result.tier_comparisons}
+            tiers={result.tier_comparisons || []}
             currentTier={selectedTier}
             onTierChange={handleTierChange}
           />
