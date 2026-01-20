@@ -22,12 +22,12 @@ const QUALITY_TIERS: { value: QualityTier; label: string; description: string }[
 ];
 
 const REGIONS: { value: Region; label: string }[] = [
-  { value: 'national', label: 'National Average' },
-  { value: 'northeast', label: 'Northeast' },
-  { value: 'southeast', label: 'Southeast' },
-  { value: 'midwest', label: 'Midwest' },
-  { value: 'southwest', label: 'Southwest' },
-  { value: 'west', label: 'West' },
+  { value: 'us_national', label: 'National Average' },
+  { value: 'us_northeast', label: 'Northeast' },
+  { value: 'us_southeast', label: 'Southeast' },
+  { value: 'us_midwest', label: 'Midwest' },
+  { value: 'us_southwest', label: 'Southwest' },
+  { value: 'us_west', label: 'West' },
 ];
 
 export function SettingsPanel({ settings, onUpdate, disabled }: SettingsPanelProps) {
