@@ -278,3 +278,86 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
 
   return { valid: true };
 }
+
+
+/**
+ * Generate and download a PDF report for the analysis results
+ */
+export async function generatePDFReport(
+  result: AnalysisResult,
+  selectedTier: string = 'standard'
+): Promise<void> {
+  // Prepare the request payload matching the backend's PDFReportRequest model
+  const payload = {
+    project_name: result.project_name || 'Construction Estimate',
+    filename: result.filename || 'blueprint.jpg',
+    rooms: result.rooms.map(room => ({
+      name: room.name,
+      dimensions: {
+        width: room.dimensions?.width || 0,
+        length: room.dimensions?.length || 0,
+      },
+      area: room.area || 0,
+      confidence: room.confidence || 0.5,
+    })),
+    materials: result.materials.map(mat => ({
+      name: mat.name,
+      category: mat.category,
+      quantity: mat.quantity,
+      unit: mat.unit,
+      unit_cost: mat.unit_cost,
+      material_cost: mat.material_cost,
+      labor_cost: mat.labor_cost,
+      total_cost: mat.total_cost,
+    })),
+    cost_breakdown: {
+      materials_subtotal: result.cost_breakdown.materials_subtotal,
+      labor_subtotal: result.cost_breakdown.labor_subtotal,
+      subtotal: result.cost_breakdown.subtotal,
+      contingency_amount: result.cost_breakdown.contingency_amount,
+      grand_total: result.cost_breakdown.grand_total,
+    },
+    tier_comparisons: result.tier_comparisons.map(tier => ({
+      tier: tier.tier,
+      grand_total: tier.grand_total,
+    })),
+    selected_tier: selectedTier,
+    total_area: result.total_area || 0,
+    contingency_percent: result.contingency_percent || 10,
+  };
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/generate-pdf`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `PDF generation failed: ${response.statusText}`);
+  }
+
+  // Get the PDF blob and trigger download
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  
+  // Extract filename from Content-Disposition header if available
+  const contentDisposition = response.headers.get('Content-Disposition');
+  let filename = 'estimate_report.pdf';
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+    if (filenameMatch) {
+      filename = filenameMatch[1];
+    }
+  }
+  
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}

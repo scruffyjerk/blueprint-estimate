@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { StickySummary } from '@/components/results/StickySummary';
@@ -8,6 +8,7 @@ import { CostTable } from '@/components/results/CostTable';
 import { TierComparison } from '@/components/results/TierComparison';
 import { ResultActions } from '@/components/results/ResultActions';
 import { AnalysisResult, QualityTier, MaterialItem, CostBreakdown } from '@/types';
+import { generatePDFReport } from '@/services/api';
 
 export default function Results() {
   const location = useLocation();
@@ -94,10 +95,28 @@ export default function Results() {
     navigate('/analyze');
   };
 
-  const handleDownloadPdf = () => {
-    // PDF download would be implemented here
-    alert('PDF download coming soon!');
-  };
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handleDownloadPdf = useCallback(async () => {
+    if (!result || isGeneratingPdf) return;
+    
+    setIsGeneratingPdf(true);
+    try {
+      // Create an adjusted result with the current tier's costs
+      const adjustedResult: AnalysisResult = {
+        ...result,
+        materials: adjustedMaterials,
+        cost_breakdown: adjustedCostBreakdown,
+      };
+      
+      await generatePDFReport(adjustedResult, selectedTier);
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      alert(error instanceof Error ? error.message : 'Failed to generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [result, adjustedMaterials, adjustedCostBreakdown, selectedTier, isGeneratingPdf]);
 
   return (
     <Layout hideFooter>
@@ -129,6 +148,7 @@ export default function Results() {
           <ResultActions
             onNewEstimate={handleNewEstimate}
             onDownloadPdf={handleDownloadPdf}
+            isGeneratingPdf={isGeneratingPdf}
           />
         </div>
       </div>
