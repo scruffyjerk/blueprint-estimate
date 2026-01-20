@@ -38,10 +38,21 @@ function parseDimensionString(dimStr: string | number | null | undefined): numbe
 
 /**
  * Transform the backend API response to match the frontend's expected structure
+ * 
+ * Backend response structure:
+ * {
+ *   blueprint_analysis: { filename, rooms, total_area, unit_system, warnings, model_used },
+ *   material_totals: { flooring_hardwood: {...}, paint_wall: {...}, ... },
+ *   cost_estimate: { project_name, timestamp, region, estimates: [...], subtotal_materials, subtotal_labor, contingency_percent, contingency_amount, total_estimate, notes },
+ *   quality_comparison: { budget: number, standard: number, premium: number, luxury: number }
+ * }
  */
 function transformApiResponse(data: any): AnalysisResult {
   // The backend wraps the response in "blueprint_analysis"
   const analysis = data.blueprint_analysis || data;
+  const costEstimate = data.cost_estimate || {};
+  const materialTotals = data.material_totals || {};
+  const qualityComparison = data.quality_comparison || {};
   
   // Transform rooms - backend returns strings for dimensions and area
   const rooms: Room[] = (analysis.rooms || []).map((room: any) => {
@@ -72,21 +83,41 @@ function transformApiResponse(data: any): AnalysisResult {
     totalArea = rooms.reduce((sum, room) => sum + (room.area || 0), 0);
   }
 
+  // Transform materials from cost_estimate.estimates (the actual cost items)
+  const materials = transformMaterialsFromEstimates(costEstimate.estimates || []);
+
+  // Build cost breakdown from cost_estimate
+  const costBreakdown: CostBreakdown = {
+    materials_subtotal: costEstimate.subtotal_materials || 0,
+    labor_subtotal: costEstimate.subtotal_labor || 0,
+    subtotal: (costEstimate.subtotal_materials || 0) + (costEstimate.subtotal_labor || 0),
+    contingency_amount: costEstimate.contingency_amount || 0,
+    grand_total: costEstimate.total_estimate || 0,
+  };
+
+  // Transform tier comparisons from quality_comparison
+  const tierComparisons: TierEstimate[] = [
+    { tier: 'budget', grand_total: qualityComparison.budget || 0, materials_subtotal: 0, labor_subtotal: 0 },
+    { tier: 'standard', grand_total: qualityComparison.standard || 0, materials_subtotal: 0, labor_subtotal: 0 },
+    { tier: 'premium', grand_total: qualityComparison.premium || 0, materials_subtotal: 0, labor_subtotal: 0 },
+    { tier: 'luxury', grand_total: qualityComparison.luxury || 0, materials_subtotal: 0, labor_subtotal: 0 },
+  ];
+
   // Build the result with defaults for missing fields
   const result: AnalysisResult = {
-    project_name: data.project_name || 'Untitled Project',
+    project_name: costEstimate.project_name || data.project_name || 'Untitled Project',
     filename: analysis.filename || 'Unknown File',
     total_area: totalArea,
     unit_system: analysis.unit_system || 'imperial',
     rooms: rooms,
-    materials: transformMaterials(data.materials || []),
-    cost_breakdown: transformCostBreakdown(data.cost_breakdown || {}),
-    tier_comparisons: transformTierComparisons(data.tier_comparisons || []),
+    materials: materials,
+    cost_breakdown: costBreakdown,
+    tier_comparisons: tierComparisons,
     warnings: analysis.warnings || [],
     quality_tier: data.quality_tier || 'standard',
-    region: data.region || 'us_national',
+    region: costEstimate.region || data.region || 'us_national',
     include_labor: data.include_labor ?? true,
-    contingency_percent: data.contingency_percent || 10,
+    contingency_percent: (costEstimate.contingency_percent || 0.10) * 100,
   };
 
   return result;
@@ -125,7 +156,38 @@ function parseConfidence(confidence: string | number | null | undefined): number
 }
 
 /**
- * Transform materials array
+ * Transform materials from cost_estimate.estimates array
+ * Each estimate item has: material_type, display_name, quality_tier, units_needed, unit, 
+ *                         material_cost, labor_cost, total_cost, price_per_unit, brand_example
+ */
+function transformMaterialsFromEstimates(estimates: any[]): MaterialItem[] {
+  // Map material types to categories
+  const categoryMap: Record<string, string> = {
+    'flooring_hardwood': 'Flooring',
+    'flooring_laminate': 'Flooring',
+    'flooring_tile': 'Flooring',
+    'flooring_carpet': 'Flooring',
+    'paint_wall': 'Paint',
+    'paint_ceiling': 'Paint',
+    'drywall': 'Drywall',
+    'baseboard': 'Trim',
+    'crown_molding': 'Trim',
+  };
+
+  return estimates.map((item: any) => ({
+    name: item.display_name || item.material_type || 'Unknown Material',
+    category: categoryMap[item.material_type] || 'Other',
+    quantity: item.units_needed || 0,
+    unit: item.unit || 'units',
+    unit_cost: item.price_per_unit || 0,
+    material_cost: item.material_cost || 0,
+    labor_cost: item.labor_cost || 0,
+    total_cost: item.total_cost || 0,
+  }));
+}
+
+/**
+ * Transform materials array (legacy format)
  */
 function transformMaterials(materials: any[]): MaterialItem[] {
   return materials.map((item: any) => ({
@@ -141,7 +203,7 @@ function transformMaterials(materials: any[]): MaterialItem[] {
 }
 
 /**
- * Transform cost breakdown
+ * Transform cost breakdown (legacy format)
  */
 function transformCostBreakdown(breakdown: any): CostBreakdown {
   return {
@@ -154,7 +216,7 @@ function transformCostBreakdown(breakdown: any): CostBreakdown {
 }
 
 /**
- * Transform tier comparisons
+ * Transform tier comparisons (legacy format)
  */
 function transformTierComparisons(tiers: any[]): TierEstimate[] {
   return tiers.map((tier: any) => ({
@@ -177,7 +239,7 @@ export async function analyzeBlueprint(
     quality_tier: settings.quality_tier,
     region: settings.region,
     include_labor: String(settings.include_labor),
-    contingency_percent: String(settings.contingency_percent),
+    contingency_percent: String(settings.contingency_percent / 100), // Convert to decimal for backend
   });
 
   const response = await fetch(`${API_BASE_URL}/api/v1/analyze?${params}`, {
@@ -192,8 +254,14 @@ export async function analyzeBlueprint(
 
   const rawData = await response.json();
   
+  // Log for debugging
+  console.log('Raw API response:', rawData);
+  
   // Transform the API response to match frontend expectations
-  return transformApiResponse(rawData);
+  const result = transformApiResponse(rawData);
+  console.log('Transformed result:', result);
+  
+  return result;
 }
 
 export function validateFile(file: File): { valid: boolean; error?: string } {
