@@ -26,7 +26,7 @@ export function TierComparison({ tiers, currentTier, onTierChange }: TierCompari
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {tiers.map((tier) => {
-          const info = TIER_INFO[tier.tier];
+          const info = TIER_INFO[tier.tier || 'standard'] || TIER_INFO.standard;
           const isActive = tier.tier === currentTier;
           
           return (

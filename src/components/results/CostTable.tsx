@@ -21,8 +21,9 @@ function formatCurrency(amount: number) {
 export function CostTable({ materials, costBreakdown, contingencyPercent }: CostTableProps) {
   // Group materials by category
   const grouped = materials.reduce((acc, item) => {
-    if (!acc[item.category]) acc[item.category] = [];
-    acc[item.category].push(item);
+    const category = item.category || 'Other';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(item);
     return acc;
   }, {} as Record<string, MaterialItem[]>);
 
@@ -54,9 +55,9 @@ export function CostTable({ materials, costBreakdown, contingencyPercent }: Cost
                 </TableRow>
                 {items.map((item, index) => (
                   <TableRow key={`${category}-${index}`}>
-                    <TableCell>{item.name}</TableCell>
+                    <TableCell>{item.name || 'Unknown Material'}</TableCell>
                     <TableCell className="text-right font-mono text-sm">
-                      {item.quantity} {item.unit}
+                      {item.quantity || 0} {item.unit || 'units'}
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm hidden sm:table-cell">
                       {formatCurrency(item.unit_cost)}

@@ -20,15 +20,15 @@ export function BlueprintSummary({ result, thumbnail }: BlueprintSummaryProps) {
           <div className="flex items-start gap-2 mb-3">
             <FileImage className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
             <div className="min-w-0">
-              <h3 className="font-semibold text-foreground truncate">{result.filename}</h3>
-              <p className="text-sm text-muted-foreground">{result.project_name}</p>
+              <h3 className="font-semibold text-foreground truncate">{result.filename || 'Unknown File'}</h3>
+              <p className="text-sm text-muted-foreground">{result.project_name || 'Untitled Project'}</p>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Ruler className="w-4 h-4" />
-              <span>{(result.total_area || 0).toLocaleString()} {result.unit_system}</span>
+              <span>{(result.total_area || 0).toLocaleString()} {result.unit_system || 'sq ft'}</span>
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Layers className="w-4 h-4" />
@@ -38,7 +38,7 @@ export function BlueprintSummary({ result, thumbnail }: BlueprintSummaryProps) {
         </div>
       </div>
 
-      {result.warnings.length > 0 && (
+      {result.warnings?.length > 0 && (
         <div className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/20">
           <div className="flex gap-2">
             <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />

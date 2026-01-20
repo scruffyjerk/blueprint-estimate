@@ -49,7 +49,7 @@ export function RoomBreakdown({ rooms }: RoomBreakdownProps) {
           <TableBody>
             {rooms.map((room, index) => (
               <TableRow key={index}>
-                <TableCell className="font-medium">{room.name}</TableCell>
+                <TableCell className="font-medium">{room.name || 'Unknown Room'}</TableCell>
                 <TableCell className="text-right font-mono text-sm">
                   {(room.dimensions?.length || 0)}' × {(room.dimensions?.width || 0)}'
                 </TableCell>
