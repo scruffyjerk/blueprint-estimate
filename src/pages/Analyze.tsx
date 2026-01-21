@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
@@ -8,9 +7,14 @@ import { SettingsPanel } from '@/components/upload/SettingsPanel';
 import { AnalyzingState } from '@/components/upload/AnalyzingState';
 import { ErrorState } from '@/components/upload/ErrorState';
 import { useAnalysis } from '@/hooks/useAnalysis';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Analyze() {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
+  const { toast } = useToast();
   const {
     state,
     settings,
@@ -20,12 +24,35 @@ export default function Analyze() {
     analyze,
     reset,
     updateSettings,
-    setResult,
   } = useAnalysis();
 
   const handleAnalyze = async () => {
     const result = await analyze();
-    if (result) {
+    if (result && user) {
+      // Save to upload history
+      const { error } = await supabase.from('upload_history').insert({
+        user_id: user.id,
+        filename: selectedFile?.name || 'Unknown',
+        upload_date: new Date().toISOString(),
+        results_summary: {
+          rooms: result.rooms.map(r => r.name),
+          quality_tier: result.quality_tier,
+          region: result.region,
+        },
+        total_estimate: result.cost_breakdown.grand_total,
+        total_area: result.total_area,
+        room_count: result.rooms.length,
+      });
+
+      if (error) {
+        console.error('Failed to save upload history:', error);
+        toast({
+          title: 'Note',
+          description: 'Analysis complete, but we couldn\'t save to your history.',
+          variant: 'destructive',
+        });
+      }
+
       navigate('/results', { state: { result, thumbnail: filePreview } });
     }
   };

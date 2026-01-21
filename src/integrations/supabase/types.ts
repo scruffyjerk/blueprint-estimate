@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          stripe_customer_id: string | null
+          subscription_status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          stripe_customer_id?: string | null
+          subscription_status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          stripe_customer_id?: string | null
+          subscription_status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      upload_history: {
+        Row: {
+          created_at: string
+          filename: string
+          id: string
+          results_summary: Json | null
+          room_count: number | null
+          total_area: number | null
+          total_estimate: number | null
+          upload_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filename: string
+          id?: string
+          results_summary?: Json | null
+          room_count?: number | null
+          total_area?: number | null
+          total_estimate?: number | null
+          upload_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filename?: string
+          id?: string
+          results_summary?: Json | null
+          room_count?: number | null
+          total_area?: number | null
+          total_estimate?: number | null
+          upload_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
