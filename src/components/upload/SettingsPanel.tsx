@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { ChevronDown, Settings } from 'lucide-react';
+import { ChevronDown, Settings, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { AnalysisSettings, QualityTier, Region } from '@/types';
+import { AnalysisSettings, QualityTier, Region, LaborAvailability } from '@/types';
 
 interface SettingsPanelProps {
   settings: AnalysisSettings;
@@ -28,6 +28,12 @@ const REGIONS: { value: Region; label: string }[] = [
   { value: 'us_midwest', label: 'Midwest' },
   { value: 'us_southwest', label: 'Southwest' },
   { value: 'us_west', label: 'West' },
+];
+
+const LABOR_AVAILABILITY: { value: LaborAvailability; label: string; description: string; adjustment: string }[] = [
+  { value: 'low', label: 'Low', description: 'Labor shortage in your area', adjustment: '+15%' },
+  { value: 'average', label: 'Average', description: 'Normal market conditions', adjustment: '0%' },
+  { value: 'high', label: 'High', description: 'Labor surplus available', adjustment: '-10%' },
 ];
 
 export function SettingsPanel({ settings, onUpdate, disabled }: SettingsPanelProps) {
@@ -116,6 +122,44 @@ export function SettingsPanel({ settings, onUpdate, disabled }: SettingsPanelPro
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Labor Availability Toggle */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-muted-foreground" />
+                <Label>Local Labor Availability</Label>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {LABOR_AVAILABILITY.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => onUpdate({ labor_availability: option.value })}
+                    disabled={disabled}
+                    className={cn(
+                      "relative flex flex-col items-center p-3 rounded-lg border-2 transition-all",
+                      settings.labor_availability === option.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground/50",
+                      disabled && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <span className="font-medium text-sm">{option.label}</span>
+                    <span className={cn(
+                      "text-xs mt-1 font-mono",
+                      option.value === 'low' && "text-red-500",
+                      option.value === 'average' && "text-muted-foreground",
+                      option.value === 'high' && "text-green-500"
+                    )}>
+                      {option.adjustment} labor
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Adjust labor costs based on local market conditions. Low availability = higher costs due to labor shortage.
+              </p>
             </div>
 
             {/* Include Labor */}

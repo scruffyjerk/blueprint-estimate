@@ -49,10 +49,12 @@ export interface AnalysisResult {
   region: Region;
   include_labor: boolean;
   contingency_percent: number;
+  labor_availability?: LaborAvailability;
 }
 
 export type QualityTier = 'budget' | 'standard' | 'premium' | 'luxury';
 export type Region = 'us_national' | 'us_northeast' | 'us_southeast' | 'us_midwest' | 'us_southwest' | 'us_west';
+export type LaborAvailability = 'low' | 'average' | 'high';
 
 export interface AnalysisSettings {
   project_name: string;
@@ -60,6 +62,7 @@ export interface AnalysisSettings {
   region: Region;
   include_labor: boolean;
   contingency_percent: number;
+  labor_availability: LaborAvailability;
 }
 
 export interface AnalysisState {

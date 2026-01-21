@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS: AnalysisSettings = {
   region: 'us_national',
   include_labor: true,
   contingency_percent: 10,
+  labor_availability: 'average',
 };
 
 export function useAnalysis() {

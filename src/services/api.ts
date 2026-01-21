@@ -240,6 +240,7 @@ export async function analyzeBlueprint(
     region: settings.region,
     include_labor: String(settings.include_labor),
     contingency_percent: String(settings.contingency_percent / 100), // Convert to decimal for backend
+    labor_availability: settings.labor_availability || 'average',
   });
 
   const response = await fetch(`${API_BASE_URL}/api/v1/analyze?${params}`, {
