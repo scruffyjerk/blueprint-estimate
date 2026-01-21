@@ -265,6 +265,32 @@ export async function analyzeBlueprint(
   return result;
 }
 
+/**
+ * Create a checkout session for subscription
+ */
+export async function createCheckoutSession(params: {
+  plan: 'pro' | 'agency';
+  interval: 'monthly' | 'annual';
+  success_url: string;
+  cancel_url: string;
+}): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/create-checkout-session`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Checkout failed: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.url || data.checkout_url;
+}
+
 export function validateFile(file: File): { valid: boolean; error?: string } {
   const MAX_SIZE = 10 * 1024 * 1024; // 10MB
   const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
