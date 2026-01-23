@@ -62,7 +62,7 @@ export default function Dashboard() {
         .from('upload_history')
         .select('*')
         .eq('user_id', user.id)
-        .order('upload_date', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(10);
 
       if (!error && data) {
@@ -240,10 +240,10 @@ export default function Dashboard() {
                           <div className="flex items-center gap-3 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
-                              {formatDate(upload.upload_date)}
+                              {formatDate(upload.created_at)}
                             </span>
-                            {upload.room_count && (
-                              <span>{upload.room_count} rooms</span>
+                            {upload.rooms_detected && (
+                              <span>{upload.rooms_detected} rooms</span>
                             )}
                           </div>
                         </div>

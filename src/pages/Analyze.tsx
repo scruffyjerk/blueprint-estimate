@@ -33,15 +33,11 @@ export default function Analyze() {
       const { error } = await supabase.from('upload_history').insert({
         user_id: user.id,
         filename: selectedFile?.name || 'Unknown',
-        upload_date: new Date().toISOString(),
-        results_summary: {
-          rooms: result.rooms.map(r => r.name),
-          quality_tier: result.quality_tier,
-          region: result.region,
-        },
-        total_estimate: result.cost_breakdown.grand_total,
+        file_size: selectedFile?.size || null,
+        rooms_detected: result.rooms.length,
         total_area: result.total_area,
-        room_count: result.rooms.length,
+        total_estimate: result.cost_breakdown.grand_total,
+        quality_tier: result.quality_tier,
       });
 
       if (error) {

@@ -16,11 +16,11 @@ export interface UploadHistory {
   id: string;
   user_id: string;
   filename: string;
-  upload_date: string;
-  results_summary: Record<string, unknown> | null;
-  total_estimate: number | null;
+  file_size: number | null;
+  rooms_detected: number | null;
   total_area: number | null;
-  room_count: number | null;
+  total_estimate: number | null;
+  quality_tier: string | null;
   created_at: string;
 }
 
