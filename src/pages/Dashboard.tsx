@@ -27,6 +27,32 @@ export default function Dashboard() {
   const { user, profile } = useAuthContext();
   const [uploads, setUploads] = useState<UploadHistory[]>([]);
   const [loadingUploads, setLoadingUploads] = useState(true);
+  const [loadingPortal, setLoadingPortal] = useState(false);
+
+  const handleManageSubscription = async () => {
+    if (!profile?.stripe_customer_id) {
+      console.error('No Stripe customer ID found');
+      return;
+    }
+    
+    setLoadingPortal(true);
+    try {
+      const response = await fetch(
+        `https://takeoff-api-uyzv.onrender.com/api/v1/create-portal-session?customer_id=${profile.stripe_customer_id}&return_url=${encodeURIComponent(window.location.href)}`,
+        { method: 'POST' }
+      );
+      const data = await response.json();
+      if (data.portal_url) {
+        window.location.href = data.portal_url;
+      } else {
+        console.error('No portal URL returned');
+      }
+    } catch (error) {
+      console.error('Error opening portal:', error);
+    } finally {
+      setLoadingPortal(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchUploads() {
@@ -136,15 +162,21 @@ export default function Dashboard() {
                       </Button>
                     </Link>
                   ) : (
-                    <Button size="sm" variant="outline" className="gap-1" asChild>
-                      <a 
-                        href="https://billing.stripe.com/p/login/test_00g4h85hl0RCa4E8ww" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                      >
-                        Manage Subscription
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="gap-1"
+                      onClick={handleManageSubscription}
+                      disabled={loadingPortal}
+                    >
+                      {loadingPortal ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <>
+                          Manage Subscription
+                          <ExternalLink className="w-3 h-3" />
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>
