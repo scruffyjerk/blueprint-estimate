@@ -9,6 +9,7 @@ import { TierComparison } from '@/components/results/TierComparison';
 import { ResultActions } from '@/components/results/ResultActions';
 import { AnalysisResult, QualityTier, MaterialItem, CostBreakdown } from '@/types';
 import { generatePDFReport } from '@/services/api';
+import { AlertCircle } from 'lucide-react';
 
 export default function Results() {
   const location = useLocation();
@@ -128,6 +129,19 @@ export default function Results() {
 
       <div className="container py-6 md:py-10">
         <div className="max-w-4xl mx-auto space-y-6">
+          {/* Beta Disclaimer Banner */}
+          <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-amber-900 mb-1">Beta Version - Verify Before Use</h3>
+                <p className="text-sm text-amber-800">
+                  AI estimates are approximately 70-80% accurate. Always verify measurements and costs for final quotes. 
+                  This tool is designed to provide quick preliminary estimates, not replace professional takeoff services.
+                </p>
+              </div>
+            </div>
+          </div>
           <BlueprintSummary result={result} thumbnail={thumbnail} />
 
           <RoomBreakdown rooms={result.rooms || []} />
