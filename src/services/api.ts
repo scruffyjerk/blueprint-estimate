@@ -349,8 +349,12 @@ export async function generatePDFReport(
       grand_total: tier.grand_total,
     })),
     selected_tier: selectedTier,
+    quality_tier: result.quality_tier || 'standard',
+    region: result.region || 'us_national',
+    include_labor: result.include_labor !== undefined ? result.include_labor : true,
     total_area: result.total_area || 0,
     contingency_percent: result.contingency_percent || 10,
+    labor_availability: result.labor_availability || 'average',
   };
 
   const response = await fetch(`${API_BASE_URL}/api/v1/generate-pdf`, {
