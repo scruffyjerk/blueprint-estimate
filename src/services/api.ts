@@ -242,6 +242,11 @@ export async function analyzeBlueprint(
     contingency_percent: String(settings.contingency_percent / 100), // Convert to decimal for backend
     labor_availability: settings.labor_availability || 'average',
   });
+  
+  // Add zipcode if provided
+  if (settings.zipcode) {
+    params.append('zipcode', settings.zipcode);
+  }
 
   const response = await fetch(`${API_BASE_URL}/api/v1/analyze?${params}`, {
     method: 'POST',
