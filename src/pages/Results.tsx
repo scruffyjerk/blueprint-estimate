@@ -7,6 +7,7 @@ import { RoomBreakdown } from '@/components/results/RoomBreakdown';
 import { CostTable } from '@/components/results/CostTable';
 import { TierComparison } from '@/components/results/TierComparison';
 import { ResultActions } from '@/components/results/ResultActions';
+import { AnalysisSettings } from '@/components/results/AnalysisSettings';
 import { AnalysisResult, QualityTier, MaterialItem, CostBreakdown } from '@/types';
 import { generatePDFReport } from '@/services/api';
 import { AlertCircle } from 'lucide-react';
@@ -142,6 +143,16 @@ export default function Results() {
               </div>
             </div>
           </div>
+          
+          <AnalysisSettings
+            projectName={result.project_name}
+            qualityTier={result.quality_tier}
+            region={result.region}
+            includeLabor={result.include_labor}
+            contingencyPercent={result.contingency_percent}
+            laborAvailability={result.labor_availability}
+          />
+          
           <BlueprintSummary result={result} thumbnail={thumbnail} />
 
           <RoomBreakdown rooms={result.rooms || []} />
