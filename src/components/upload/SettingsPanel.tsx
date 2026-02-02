@@ -124,6 +124,23 @@ export function SettingsPanel({ settings, onUpdate, disabled }: SettingsPanelPro
               </div>
             </div>
 
+            {/* Zipcode for State-Specific Pricing */}
+            <div className="space-y-2">
+              <Label htmlFor="zipcode">Zipcode (optional)</Label>
+              <Input
+                id="zipcode"
+                placeholder="Enter zipcode for state-specific pricing"
+                value={settings.zipcode || ''}
+                onChange={(e) => onUpdate({ zipcode: e.target.value })}
+                disabled={disabled}
+                maxLength={5}
+                pattern="[0-9]{5}"
+              />
+              <p className="text-sm text-muted-foreground">
+                Enter your project's zipcode for more accurate state-level pricing. If left blank, regional pricing will be used.
+              </p>
+            </div>
+
             {/* Labor Availability Toggle */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">

@@ -60,6 +60,7 @@ export interface AnalysisSettings {
   project_name: string;
   quality_tier: QualityTier;
   region: Region;
+  zipcode?: string;  // Optional zipcode for state-specific pricing
   include_labor: boolean;
   contingency_percent: number;
   labor_availability: LaborAvailability;
