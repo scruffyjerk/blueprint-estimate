@@ -21,13 +21,57 @@ const QUALITY_TIERS: { value: QualityTier; label: string; description: string }[
   { value: 'luxury', label: 'Luxury', description: 'Top-tier materials' },
 ];
 
-const REGIONS: { value: Region; label: string }[] = [
-  { value: 'us_national', label: 'National Average' },
-  { value: 'us_northeast', label: 'Northeast' },
-  { value: 'us_southeast', label: 'Southeast' },
-  { value: 'us_midwest', label: 'Midwest' },
-  { value: 'us_southwest', label: 'Southwest' },
-  { value: 'us_west', label: 'West' },
+const US_STATES: { value: string; label: string }[] = [
+  { value: 'AL', label: 'Alabama' },
+  { value: 'AK', label: 'Alaska' },
+  { value: 'AZ', label: 'Arizona' },
+  { value: 'AR', label: 'Arkansas' },
+  { value: 'CA', label: 'California' },
+  { value: 'CO', label: 'Colorado' },
+  { value: 'CT', label: 'Connecticut' },
+  { value: 'DE', label: 'Delaware' },
+  { value: 'FL', label: 'Florida' },
+  { value: 'GA', label: 'Georgia' },
+  { value: 'HI', label: 'Hawaii' },
+  { value: 'ID', label: 'Idaho' },
+  { value: 'IL', label: 'Illinois' },
+  { value: 'IN', label: 'Indiana' },
+  { value: 'IA', label: 'Iowa' },
+  { value: 'KS', label: 'Kansas' },
+  { value: 'KY', label: 'Kentucky' },
+  { value: 'LA', label: 'Louisiana' },
+  { value: 'ME', label: 'Maine' },
+  { value: 'MD', label: 'Maryland' },
+  { value: 'MA', label: 'Massachusetts' },
+  { value: 'MI', label: 'Michigan' },
+  { value: 'MN', label: 'Minnesota' },
+  { value: 'MS', label: 'Mississippi' },
+  { value: 'MO', label: 'Missouri' },
+  { value: 'MT', label: 'Montana' },
+  { value: 'NE', label: 'Nebraska' },
+  { value: 'NV', label: 'Nevada' },
+  { value: 'NH', label: 'New Hampshire' },
+  { value: 'NJ', label: 'New Jersey' },
+  { value: 'NM', label: 'New Mexico' },
+  { value: 'NY', label: 'New York' },
+  { value: 'NC', label: 'North Carolina' },
+  { value: 'ND', label: 'North Dakota' },
+  { value: 'OH', label: 'Ohio' },
+  { value: 'OK', label: 'Oklahoma' },
+  { value: 'OR', label: 'Oregon' },
+  { value: 'PA', label: 'Pennsylvania' },
+  { value: 'RI', label: 'Rhode Island' },
+  { value: 'SC', label: 'South Carolina' },
+  { value: 'SD', label: 'South Dakota' },
+  { value: 'TN', label: 'Tennessee' },
+  { value: 'TX', label: 'Texas' },
+  { value: 'UT', label: 'Utah' },
+  { value: 'VT', label: 'Vermont' },
+  { value: 'VA', label: 'Virginia' },
+  { value: 'WA', label: 'Washington' },
+  { value: 'WV', label: 'West Virginia' },
+  { value: 'WI', label: 'Wisconsin' },
+  { value: 'WY', label: 'Wyoming' },
 ];
 
 const LABOR_AVAILABILITY: { value: LaborAvailability; label: string; description: string; adjustment: string }[] = [
@@ -75,6 +119,23 @@ export function SettingsPanel({ settings, onUpdate, disabled }: SettingsPanelPro
               />
             </div>
 
+            {/* Zipcode for State-Specific Pricing - Most Prominent */}
+            <div className="space-y-2">
+              <Label htmlFor="zipcode">Zipcode (recommended for accurate pricing)</Label>
+              <Input
+                id="zipcode"
+                placeholder="Enter 5-digit zipcode"
+                value={settings.zipcode || ''}
+                onChange={(e) => onUpdate({ zipcode: e.target.value })}
+                disabled={disabled}
+                maxLength={5}
+                pattern="[0-9]{5}"
+              />
+              <p className="text-sm text-muted-foreground">
+                Zipcode provides the most accurate state-level pricing. If left blank, state selection below will be used.
+              </p>
+            </div>
+
             <div className="grid md:grid-cols-2 gap-6">
               {/* Quality Tier */}
               <div className="space-y-2">
@@ -102,21 +163,21 @@ export function SettingsPanel({ settings, onUpdate, disabled }: SettingsPanelPro
                 </Select>
               </div>
 
-              {/* Region */}
+              {/* State */}
               <div className="space-y-2">
-                <Label>Region</Label>
+                <Label>State (optional)</Label>
                 <Select
                   value={settings.region}
-                  onValueChange={(value: Region) => onUpdate({ region: value })}
+                  onValueChange={(value: string) => onUpdate({ region: value })}
                   disabled={disabled}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
-                    {REGIONS.map((region) => (
-                      <SelectItem key={region.value} value={region.value}>
-                        {region.label}
+                    {US_STATES.map((state) => (
+                      <SelectItem key={state.value} value={state.value}>
+                        {state.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -124,22 +185,7 @@ export function SettingsPanel({ settings, onUpdate, disabled }: SettingsPanelPro
               </div>
             </div>
 
-            {/* Zipcode for State-Specific Pricing */}
-            <div className="space-y-2">
-              <Label htmlFor="zipcode">Zipcode (optional)</Label>
-              <Input
-                id="zipcode"
-                placeholder="Enter zipcode for state-specific pricing"
-                value={settings.zipcode || ''}
-                onChange={(e) => onUpdate({ zipcode: e.target.value })}
-                disabled={disabled}
-                maxLength={5}
-                pattern="[0-9]{5}"
-              />
-              <p className="text-sm text-muted-foreground">
-                Enter your project's zipcode for more accurate state-level pricing. If left blank, regional pricing will be used.
-              </p>
-            </div>
+
 
             {/* Labor Availability Toggle */}
             <div className="space-y-3">
